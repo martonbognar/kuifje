@@ -6,7 +6,7 @@
 module DataTypes where
 
 import Control.Monad (ap)
-import Data.List (unfoldr)
+import Data.List (genericLength, unfoldr)
 import Data.Map (toList,fromListWith)
 
 type Prob = Rational
@@ -24,12 +24,23 @@ instance Monad Dist where
   return x = D [(x, 1)]
   d >>= f  = D [ (y, p * q) | (x, p) <- runD d, (y, q) <- runD (f x) ]
 
+uniform :: [a] -> Dist a
+uniform l    = D [(x, 1/genericLength l) | x <- l]
+
+choose :: Prob -> a -> a -> Dist a
+choose p x y = D [(x,p),(y, 1-p)]
+
 -- | Recover list representation, reduced.
 unpackD :: Ord a => Dist a -> [(a, Prob)]
 unpackD = removeDups . removeZeroes . runD
   where
     removeZeroes = filter (\(x, p) -> p /= 0)
     removeDups   = toList . fromListWith (+)
+
+reduction :: Ord a => Dist a -> Dist a
+reduction = D . unpackD  -- Unpack and then repack.
+
+--------------------------------------------------------------------------------
 
 type Bit  =  Bool
 type Bits =  [Bit]

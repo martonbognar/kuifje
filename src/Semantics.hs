@@ -2,20 +2,12 @@
 
 {-# LANGUAGE TypeOperators #-}
 
-module Main where
+module Semantics where
 
 import Control.Monad (join)
-import Data.List (genericLength)
 
 import DataTypes
-import PrettyPrint
 import Syntax
-
-choose :: Prob -> a -> a -> Dist a
-choose p x y = D [(x,p),(y, 1-p)]
-
-reduction :: Ord a => Dist a -> Dist a
-reduction = D . unpackD  -- Unpack and then repack.
 
 (=>>) :: Ord a => Dist a -> (a -> Dist b) -> Dist b
 m =>> f = reduction m >>= f
@@ -35,11 +27,6 @@ foldPCL3 alg (Observe3' f p) =  alg (Observe3F' f (foldPCL3 alg p))
 
 hysem :: (Ord s) => PCL3 s -> (s ~~> s)
 hysem = foldPCL3 algH
-
-type LArr a b  =  a -> Dist (Bits,b)
-
-multiply :: (Dist Bits, Bits -> Dist s) -> Dist (Dist s)
-multiply (d,f) = fmap f d
 
 (==>) :: (a ~> b) -> (b ~> c) -> (a ~> c)
 f ==> g = \x -> f x >>= g
@@ -84,25 +71,43 @@ hobsem f = multiply . toPair . (=>> obsem f)
     multiply :: (Dist o, o -> Dist s) -> Dist (Dist s)
     multiply (d,f) = fmap f d
 
---------------------------------------------------
-fraction :: Fractional a => a -> a -> a
-fraction = (/)
+(<--->) :: PCL3 s -> PCL3 s -> PCL3 s
+Skip3         <---> k  = k
+Update3 f p   <---> k  = Update3 f (p <---> k)
+While3 c p q  <---> k  = While3 c p (q <---> k)
+If3 c p q r   <---> k  = If3 c p q (r <---> k)
+Observe3 f p  <---> k  = Observe3 f (p <---> k)  -- added
 
+--------------------------------------------------
 skip3 :: PCL3 s
 skip3 = Skip3
 
-uniform :: [a] -> Dist a
-uniform l    = D [(x, 1/genericLength l) | x <- l]
+update3 :: (s ~> s) -> PCL3 s
+update3 f  =  Update3 f skip3
+
+while3 :: (s ~> Bool) -> PCL3 s -> PCL3 s
+while3 c p  =  While3 c p skip3
+
+cond3 :: (s ~> Bool) -> PCL3 s -> PCL3 s -> PCL3 s
+cond3 c p q  =  If3 c p q skip3
+
+observe3' :: (Ord o, ToBits o) => (s ~> o) -> PCL3 s
+observe3' o = Observe3' o skip3
 
 observe3 :: ToBits a => (s ~> a) -> PCL3 s
 observe3 f = Observe3' (fmap toBits . f) skip3
 
 example4 :: PCL3 (Bool,Bool)
-example4 = observe3 (\(b1,b2) -> choose (fraction 1 2) b1 b2)
+example4 = observe3 (\(b1,b2) -> choose (1 / 2) b1 b2)
 
 boolPairs :: Dist (Bool,Bool)
 boolPairs = uniform [(b1,b2) | b1 <- bools, b2 <- bools]
   where bools = [True,False]
 
-main :: IO ()
-main = putStrLn "kuifje"
+bv:: Ord a => Dist a -> Prob
+bv = maximum . map snd . runD . reduction
+
+condEntropy:: (Dist a -> Rational) -> Dist(Dist a) -> Rational
+condEntropy e h = average (fmap e h) where
+  average:: Dist Rational -> Rational -- Average a distribution of |Rational|'s.
+  average d = sum [r * p | (r,p)<- runD d]
