@@ -136,14 +136,14 @@ run = do
   print $ hyperN "abc" "abc"
   putStrLn "hyperR \"abc\" \"abc\""
   print $ hyperR "abc" "abc"
-  putStrLn "condEntropy bv (hyperR \"abc\" \"abc\")"
-  print $ condEntropy bv (hyperR "abc" "abc")
-  putStrLn "condEntropy bv (hyperI \"abc\" \"abc\")"
-  print $ condEntropy bv (hyperI "abc" "abc")
-  putStrLn "condEntropy bv (hyperI \"abcde\" \"abcde\")"
-  print $ condEntropy bv (hyperI "abcde" "abcde")
-  putStrLn "condEntropy bv (hyperR \"abcde\" \"abcde\")"
-  print $ condEntropy bv (hyperR "abcde" "abcde")
+  putStrLn "condEntropy bayesVuln (hyperR \"abc\" \"abc\")"
+  print $ condEntropy bayesVuln (hyperR "abc" "abc")
+  putStrLn "condEntropy bayesVuln (hyperI \"abc\" \"abc\")"
+  print $ condEntropy bayesVuln (hyperI "abc" "abc")
+  putStrLn "condEntropy bayesVuln (hyperI \"abcde\" \"abcde\")"
+  print $ condEntropy bayesVuln (hyperI "abcde" "abcde")
+  putStrLn "condEntropy bayesVuln (hyperR \"abcde\" \"abcde\")"
+  print $ condEntropy bayesVuln (hyperR "abcde" "abcde")
   putStrLn "condEntropy ge (hyperR \"abc\" \"abc\")"
   print $ condEntropy ge (hyperR "abc" "abc")
   putStrLn "condEntropy ge (hyperI \"abc\" \"abc\")"
@@ -152,10 +152,10 @@ run = do
   print $ condEntropy ge (hyperR "abcde" "abcde")
   putStrLn "condEntropy ge (hyperI \"abcde\" \"abcde\")"
   print $ condEntropy ge (hyperI "abcde" "abcde")
-  putStrLn "condEntropy bv (hyperI \"abcdef\" \"abcdef\")"
-  print $ condEntropy bv (hyperI "abcdef" "abcdef")
-  putStrLn "condEntropy bv (hyperR \"abcdef\" \"abcdef\")"
-  print $ condEntropy bv (hyperR "abcdef" "abcdef")
+  putStrLn "condEntropy bayesVuln (hyperI \"abcdef\" \"abcdef\")"
+  print $ condEntropy bayesVuln (hyperI "abcdef" "abcdef")
+  putStrLn "condEntropy bayesVuln (hyperR \"abcdef\" \"abcdef\")"
+  print $ condEntropy bayesVuln (hyperR "abcdef" "abcdef")
   putStrLn "condEntropy ge (hyperI \"abcdef\" \"abcdef\")"
   print $ condEntropy ge (hyperI "abcdef" "abcdef")
   putStrLn "condEntropy ge (hyperR \"abcdef\" \"abcdef\")"

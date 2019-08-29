@@ -7,34 +7,38 @@ module Semantics where
 import Control.Monad (join)
 
 import Distribution
-import PrettyPrint
 import Syntax
 
+-- | Hyper-distribution type synonym.
+type a ~~> b = Dist a -> Dist (Dist b)
+
+-- | Bind with reduction applied to the input distribution.
 (=>>) :: Ord a => Dist a -> (a -> Dist b) -> Dist b
 m =>> f = reduction m >>= f
 
-type a ~~> b = Dist a -> Dist (Dist b)
-
+-- | Kleisli composition.
 (==>) :: (a ~> b) -> (b ~> c) -> (a ~> c)
 f ==> g = \x -> f x >>= g
 
+-- | hysem
 hysem :: (Ord s) => Kuifje s -> (s ~~> s)
-hysem Skip            =  return
-hysem (Update f p)    =  huplift f ==> (hysem p)
-hysem (If c p q r)    =  conditional c (hysem p) (hysem q) ==> (hysem r)
-hysem (While c p q)   =  let  while = conditional c ((hysem p) ==> while) (hysem q)
-                          in   while
-hysem (Observe f p)  =  hobsem f ==> (hysem p)
+hysem Skip          = return
+hysem (Update f p)  = huplift f ==> (hysem p)
+hysem (If c p q r)  = conditional c (hysem p) (hysem q) ==> (hysem r)
+hysem (While c p q) = let wh = conditional c ((hysem p) ==> wh) (hysem q)
+                      in wh
+hysem (Observe f p) = hobsem f ==> (hysem p)
 
+-- | conditional
 conditional :: Ord s => (s ~> Bool) -> (s ~~> s) -> (s ~~> s) -> (s ~~> s)
-conditional c t e = \d ->
-    let d'     = d =>> \s -> c s =>> \b -> return (b, s)
-        w1     = sum [p | ((b,s),p) <- runD d', b]
-        w2     = 1 - w1
-        d1     = D [ (s, p / w1) | ((b,s),p) <- runD d', b]
-        d2     = D [ (s, p / w2) | ((b,s),p) <- runD d', not b]
-        h1     = t d1
-        h2     = e d2
+conditional c t e d
+  = let d' = d =>> \s -> c s =>> \b -> return (b, s)
+        w1 = sum [p | ((b, _), p) <- runD d', b]
+        w2 = 1 - w1
+        d1 = D [(s, p / w1) | ((b, s), p) <- runD d', b]
+        d2 = D [(s, p / w2) | ((b, s), p) <- runD d', not b]
+        h1 = t d1
+        h2 = e d2
     in  if       null (runD d2)  then  h1
         else if  null (runD d1)  then  h2
                                  else  join (choose w1 h1 h2)
@@ -42,33 +46,31 @@ conditional c t e = \d ->
 huplift :: Ord s => (s ~> s) -> (s ~~> s)
 huplift f = return . (=>> f)
 
+-- | hobsem
 hobsem :: (Ord s, Ord o) => (s ~> o) -> (s ~~> s)
 hobsem f = multiply . toPair . (=>> obsem f)
   where
+    -- | obsem
     obsem :: Ord o => (a ~> o) -> (a ~> (o,a))
-    obsem f = \x -> fmap (\w -> (w,x)) (f x)
-
-    toPair :: (Ord s, Ord o) => Dist (o,s) -> (Dist o, o -> Dist s)
-    toPair dp = (d,f)
-       where
-         d     =  fmap fst dp
-         f ws  =  let  dpws  =  D [ (s, p) | ((ws',s), p) <- runD dp, ws' == ws]
-                  in   D [ (s, p/weight dpws) | (s, p) <- runD dpws]
-
+    obsem f' = \x -> fmap (\w -> (w, x)) (f' x)
+    -- | toPair
+    toPair :: (Ord s, Ord o) => Dist (o, s) -> (Dist o, o -> Dist s)
+    toPair dp = (d, f')
+      where
+        d     = fmap fst dp
+        f' ws = let dpws = D [(s, p) | ((ws', s), p) <- runD dp, ws' == ws]
+                in D [(s, p / weight dpws) | (s, p) <- runD dpws]
+    -- | multiply
     multiply :: (Dist o, o -> Dist s) -> Dist (Dist s)
-    multiply (d,f) = fmap f d
+    multiply (d, f') = fmap f' d
 
-example4 :: Kuifje (Bool,Bool)
-example4 = observe (\(b1,b2) -> choose (1 / 2) b1 b2)
+-- | Calculate Bayes Vulnerability for a distribution.
+bayesVuln :: Ord a => Dist a -> Prob
+bayesVuln = maximum . map snd . runD . reduction
 
-boolPairs :: Dist (Bool,Bool)
-boolPairs = uniform [(b1,b2) | b1 <- bools, b2 <- bools]
-  where bools = [True,False]
-
-bv:: Ord a => Dist a -> Prob
-bv = maximum . map snd . runD . reduction
-
-condEntropy:: (Dist a -> Rational) -> Dist(Dist a) -> Rational
+-- | condEntropy
+condEntropy :: (Dist a -> Rational) -> Dist(Dist a) -> Rational
 condEntropy e h = average (fmap e h) where
-  average:: Dist Rational -> Rational -- Average a distribution of |Rational|'s.
-  average d = sum [r * p | (r,p)<- runD d]
+  -- | Average a distribution of Rationals.
+  average :: Dist Rational -> Rational
+  average d = sum [r * p | (r, p) <- runD d]

@@ -24,5 +24,5 @@ run :: IO ()
 run = do
   putStrLn "> monty"
   print monty
-  putStrLn "> condEntropy bv monty"
-  print $ condEntropy bv monty
+  putStrLn "> condEntropy bayesVuln monty"
+  print $ condEntropy bayesVuln monty

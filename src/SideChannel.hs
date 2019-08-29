@@ -53,10 +53,10 @@ run :: IO ()
 run = do
    putStrLn "> hyper2"
    print hyper2
-   putStrLn "> condEntropy bv hyper235"
-   print $ condEntropy bv hyper235
-   putStrLn "> condEntropy bv hyper2"
-   print $ condEntropy bv hyper2
+   putStrLn "> condEntropy bayesVuln hyper235"
+   print $ condEntropy bayesVuln hyper235
+   putStrLn "> condEntropy bayesVuln hyper2"
+   print $ condEntropy bayesVuln hyper2
    putStrLn "> hyper235"
    print hyper235
    putStrLn "> condEntropy jail hyper235"
