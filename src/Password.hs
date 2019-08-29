@@ -5,6 +5,7 @@ module Password where
 import Prelude hiding ((!!))
 import Control.Lens hiding (Profunctor, dimap)
 import Data.List ((\\),genericIndex,permutations,sortBy)
+import Data.Semigroup
 
 import Distribution
 import PrettyPrint
@@ -34,29 +35,29 @@ initialDist pw gs = uniform [ makeState pw' gs | pw' <- permutations pw]
 
 basicI :: Int -> Kuifje SP
 basicI n =
-  update (\s -> return (s.^i $= 0)) <--->                          -- |i := 0;|
-  update (\s -> return (s.^ans $= True)) <--->                     -- |ans := true|
-  while (\s -> return (s^.ans && s^.i < n))                        -- |while (ans && i<N) do|
-    (                                                              -- |begin|
-    cond (\s -> return ((s^.pw !! s^.i) /= (s^.gs !! s^.i)))       -- \quad |if (pw[i] /= gs[i])|
-          (update (\s -> return (s.^ans $= False)))                -- \qquad |then ans := false|
-          skip <--->                                               -- \qquad |else skip|
-    (update (\s -> return (s.^i $= (s^.i+1))))                     -- \quad |i++|
-    )                                                              -- |end|
+  update (\s -> return (s.^i $= 0)) <>                          -- |i := 0;|
+  update (\s -> return (s.^ans $= True)) <>                     -- |ans := true|
+  while (\s -> return (s^.ans && s^.i < n))                     -- |while (ans && i<N) do|
+    (                                                           -- |begin|
+    cond (\s -> return ((s^.pw !! s^.i) /= (s^.gs !! s^.i)))    -- \quad |if (pw[i] /= gs[i])|
+          (update (\s -> return (s.^ans $= False)))             -- \qquad |then ans := false|
+          skip <>                                               -- \qquad |else skip|
+    (update (\s -> return (s.^i $= (s^.i+1))))                  -- \quad |i++|
+    )                                                           -- |end|
 
 hyperI pw gs = projectPw (hysem (basicI (length pw)) (initialDist pw gs))
 
 basicL :: Int -> Kuifje SP
 basicL n =
-  update (\s -> return (s.^i $= 0)) <--->                          -- |i := 0;|
-  update (\s -> return (s.^ans $= True)) <--->                     -- |ans := true|
-  while (\s -> return (s^.i < n))                                  -- |while i<N do|
-    (                                                              -- |begin|
-    cond (\s -> return ((s^.pw !! s^.i) /= (s^.gs !! s^.i)))       -- \quad |if (pw[i] /= gs[i])|
-          (update (\s -> return (s.^ans $= False)))                -- \qquad |then ans := false|
-          skip <--->                                               -- \qquad |else skip|
-    (update (\s -> return (s.^i $= (s^.i+1))))                     -- \quad |i++|
-    )                                                              -- |end|
+  update (\s -> return (s.^i $= 0)) <>                          -- |i := 0;|
+  update (\s -> return (s.^ans $= True)) <>                     -- |ans := true|
+  while (\s -> return (s^.i < n))                               -- |while i<N do|
+    (                                                           -- |begin|
+    cond (\s -> return ((s^.pw !! s^.i) /= (s^.gs !! s^.i)))    -- \quad |if (pw[i] /= gs[i])|
+          (update (\s -> return (s.^ans $= False)))             -- \qquad |then ans := false|
+          skip <>                                               -- \qquad |else skip|
+    (update (\s -> return (s.^i $= (s^.i+1))))                  -- \quad |i++|
+    )                                                           -- |end|
 
 hyperL pw gs = projectPw (hysem (basicL (length pw)) (initialDist pw gs))
 
@@ -64,41 +65,41 @@ hyperM pw gs = projectPw (hysem (basicM (length pw)) (initialDist pw gs))
 
 basicM :: Int -> Kuifje SP
 basicM n =
-  update (\s -> return (s.^i $= 0)) <--->                          -- |i := 0;|
-  update (\s -> return (s.^ans $= True)) <--->                     -- |ans := true|
-  while (\s -> return (s^.i < n))                                  -- |while i<N do|
-    (                                                              -- |begin|
-    (update (\s -> return (s.^ans $=                               -- \quad |ans :=|
-      (s^.ans && (s^.pw !! s^.i) == (s^.gs !! s^.i))))) <--->      -- \qquad |ans && (pw[i] = gs[i]);|
-    (update (\s -> return (s.^i $= (s^.i+1))))                     -- \quad |i++|
-    )                                                              -- |end|
+  update (\s -> return (s.^i $= 0)) <>                          -- |i := 0;|
+  update (\s -> return (s.^ans $= True)) <>                     -- |ans := true|
+  while (\s -> return (s^.i < n))                               -- |while i<N do|
+    (                                                           -- |begin|
+    (update (\s -> return (s.^ans $=                            -- \quad |ans :=|
+      (s^.ans && (s^.pw !! s^.i) == (s^.gs !! s^.i))))) <>      -- \qquad |ans && (pw[i] = gs[i]);|
+    (update (\s -> return (s.^i $= (s^.i+1))))                  -- \quad |i++|
+    )                                                           -- |end|
 
 hyperN pw gs = projectPw (hysem (basicN (length pw)) (initialDist pw gs))
 
 basicN :: Int -> Kuifje SP
 basicN n =
-  update (\s -> return (s.^i $= 0)) <--->                          -- |i := 0;|
-  update (\s -> return (s.^ans $= True)) <--->                     -- |ans := true|
-  while (\s -> return (s^.i < n))                                  -- |while i<N do|
-    (                                                              -- |begin|
-    (update (\s -> return (s.^ans $=                               -- \quad |ans :=|
-      (s^.ans && (s^.pw !! s^.i) == (s^.gs !! s^.i))))) <--->      -- \qquad |ans && (pw[i] = gs[i]);|
-    (update (\s -> return (s.^i $= (s^.i+1))))                     -- \quad |i++|
-    ) <--->                                                        -- |end;|
-  observe (\s -> return (s^.ans))                                  -- |observe ans|
+  update (\s -> return (s.^i $= 0)) <>                          -- |i := 0;|
+  update (\s -> return (s.^ans $= True)) <>                     -- |ans := true|
+  while (\s -> return (s^.i < n))                               -- |while i<N do|
+    (                                                           -- |begin|
+    (update (\s -> return (s.^ans $=                            -- \quad |ans :=|
+      (s^.ans && (s^.pw !! s^.i) == (s^.gs !! s^.i))))) <>      -- \qquad |ans && (pw[i] = gs[i]);|
+    (update (\s -> return (s.^i $= (s^.i+1))))                  -- \quad |i++|
+    ) <>                                                        -- |end;|
+  observe (\s -> return (s^.ans))                               -- |observe ans|
 
 basicR :: Int -> Kuifje SP
 basicR n =
-  update (\s -> return (s.^l $= [0..n-1])) <--->                   -- |l := [0,...,n-1];|
-  update (\s -> return (s.^ans $= True)) <--->                     -- |ans := true;|
-  while (\s -> return (s^.ans && not (null (s^.l))))               -- |while (ans && l/=[]) do|
-    (                                                              -- |begin|
-    update (\s -> uniform [s.^i $= j | j <- s^.l]) <--->           -- \quad |i := uniform(l);|
-    (update (\s -> return (s.^ans $=                               -- \quad |ans :=|
-      (s^.ans && (s^.pw !! s^.i) == (s^.gs !! s^.i))))) <--->      -- \qquad |ans && (pw[i] = gs[i]);|
-    (update (\s -> return (s.^l $= (s^.l \\ [s^.i]))))             -- \qquad |l := l - {i}|
-    ) <--->                                                        -- |end;|
-  observe (\s -> return (s^.ans))                                  -- |observe ans|
+  update (\s -> return (s.^l $= [0..n-1])) <>                   -- |l := [0,...,n-1];|
+  update (\s -> return (s.^ans $= True)) <>                     -- |ans := true;|
+  while (\s -> return (s^.ans && not (null (s^.l))))            -- |while (ans && l/=[]) do|
+    (                                                           -- |begin|
+    update (\s -> uniform [s.^i $= j | j <- s^.l]) <>           -- \quad |i := uniform(l);|
+    (update (\s -> return (s.^ans $=                            -- \quad |ans :=|
+      (s^.ans && (s^.pw !! s^.i) == (s^.gs !! s^.i))))) <>      -- \qquad |ans && (pw[i] = gs[i]);|
+    (update (\s -> return (s.^l $= (s^.l \\ [s^.i]))))          -- \qquad |l := l - {i}|
+    ) <>                                                        -- |end;|
+  observe (\s -> return (s^.ans))                               -- |observe ans|
 
 hyperR pw gs = projectPw (hysem (basicR (length pw)) (initialDist pw gs))
 
@@ -107,17 +108,17 @@ ge = sum . zipWith (*) [1..] . (sortBy (flip compare) . map snd . runD . reducti
 
 basicS :: Int -> Kuifje SP
 basicS n =
-  update (\s -> return (s.^l $= [0..n-1])) <--->                   -- |l := [0,...,n-1];|
-  update (\s -> return (s.^ans $= True)) <--->                     -- |ans := true;|
-  while (\s -> return (s^.ans && not (null (s^.l))))               -- |while (ans && l/=[]) do|
-    (                                                              -- |begin|
-    update (\s -> uniform [s.^i $= j | j <- s^.l]) <--->           -- \quad |i := uniform(l);|
-    cond (\s -> return ((s^.pw !! s^.i) /= (s^.gs !! s^.i)))       -- \quad |if (pw[i] /= gs[i])|
-          (update (\s -> return (s.^ans $= False)))                -- \qquad |then ans := false|
-          skip <--->                                               -- \qquad |else skip|
-    (update (\s -> return (s.^l $= (s^.l \\ [s^.i]))))             -- \qquad |l := l - {i}|
-    ) <--->                                                        -- |end;|
-  observe (\s -> return (s^.ans))                                  -- |observe ans|
+  update (\s -> return (s.^l $= [0..n-1])) <>                   -- |l := [0,...,n-1];|
+  update (\s -> return (s.^ans $= True)) <>                     -- |ans := true;|
+  while (\s -> return (s^.ans && not (null (s^.l))))            -- |while (ans && l/=[]) do|
+    (                                                           -- |begin|
+    update (\s -> uniform [s.^i $= j | j <- s^.l]) <>           -- \quad |i := uniform(l);|
+    cond (\s -> return ((s^.pw !! s^.i) /= (s^.gs !! s^.i)))    -- \quad |if (pw[i] /= gs[i])|
+          (update (\s -> return (s.^ans $= False)))             -- \qquad |then ans := false|
+          skip <>                                               -- \qquad |else skip|
+    (update (\s -> return (s.^l $= (s^.l \\ [s^.i]))))          -- \qquad |l := l - {i}|
+    ) <>                                                        -- |end;|
+  observe (\s -> return (s^.ans))                               -- |observe ans|
 
 hyperS pw gs = projectPw (hysem (basicS (length pw)) (initialDist pw gs))
 

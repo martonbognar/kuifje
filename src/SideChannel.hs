@@ -4,6 +4,7 @@ module SideChannel where
 
 import Prelude hiding (exp)
 import Control.Lens hiding (Profunctor, dimap)
+import Data.Semigroup
 
 import Distribution
 import PrettyPrint
@@ -23,15 +24,15 @@ initSE base exp = SE { _base = base, _exp = exp, _e = 0, _d = 0, _p = 0 }
 
 exonentiation :: [Integer] -> Kuifje SE
 exonentiation ds =
-   update (\s -> return (s.^e  $= (s^.exp))) <--->
-   update (\s -> return (s.^p  $= 1))  <--->
+   update (\s -> return (s.^e  $= (s^.exp))) <>
+   update (\s -> return (s.^p  $= 1))  <>
    while (\s -> return (s^.e /= 0))
-           (  update (\s -> uniform [s.^d $= d' | d' <- ds]) <--->
+           (  update (\s -> uniform [s.^d $= d' | d' <- ds]) <>
               cond (\s -> return (s^.e `mod` s^.d /= 0))
-                (  update (\s -> return (s.^p  $= ((s^.p) * ((s^.base) ^ (s^.e `mod` s^.d))))) <--->
+                (  update (\s -> return (s.^p  $= ((s^.p) * ((s^.base) ^ (s^.e `mod` s^.d))))) <>
                    update (\s -> return (s.^e  $= (s^.e - (s^.e `mod` s^.d)))))   -- Then branch
-                skip <--->                                                        -- Else branch
-              update (\s -> return (s.^base  $= ((s^.base)^(s^.d)))) <--->
+                skip <>                                                        -- Else branch
+              update (\s -> return (s.^base  $= ((s^.base)^(s^.d)))) <>
               update (\s -> return (s.^e   $= (s^.e `div` s^.d)))
            )
 

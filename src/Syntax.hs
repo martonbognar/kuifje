@@ -5,6 +5,8 @@
 
 module Syntax where
 
+import Data.Semigroup
+
 import Distribution
 
 type a ~> b = a -> Dist b
@@ -16,12 +18,16 @@ data Kuifje s
   | While (s ~> Bool) (Kuifje s) (Kuifje s)
   | forall o. (Ord o) => Observe (s ~> o) (Kuifje s)
 
-(<--->) :: Kuifje s -> Kuifje s -> Kuifje s
-Skip         <---> k  = k
-Update f p   <---> k  = Update f (p <---> k)
-While c p q  <---> k  = While c p (q <---> k)
-If c p q r   <---> k  = If c p q (r <---> k)
-Observe f p  <---> k  = Observe f (p <---> k)  -- added
+instance Semigroup (Kuifje s) where
+  Skip         <> k  = k
+  Update f p   <> k  = Update f (p <> k)
+  While c p q  <> k  = While c p (q <> k)
+  If c p q r   <> k  = If c p q (r <> k)
+  Observe f p  <> k  = Observe f (p <> k)  -- added
+
+instance Monoid (Kuifje s) where
+  mempty = Skip
+  mappend = (<>)
 
 skip :: Kuifje s
 skip = Skip
