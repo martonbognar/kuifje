@@ -18,26 +18,16 @@ weight (D l)  = sum (map snd l)
 
 type a ~~> b = Dist a -> Dist (Dist b)
 
-foldPCL3 :: (PCL3F s a -> a) -> (PCL3 s -> a)
-foldPCL3 alg Skip3           =  alg Skip3F
-foldPCL3 alg (Update3 f p)   =  alg (Update3F f ((foldPCL3 alg p)))
-foldPCL3 alg (If3 c p q r)   =  alg (If3F c ((foldPCL3 alg p)) ((foldPCL3 alg q)) ((foldPCL3 alg r)))
-foldPCL3 alg (While3 c p q)  =  alg (While3F c ((foldPCL3 alg p)) ((foldPCL3 alg q)))
-foldPCL3 alg (Observe3' f p) =  alg (Observe3F' f (foldPCL3 alg p))
-
-hysem :: (Ord s) => PCL3 s -> (s ~~> s)
-hysem = foldPCL3 algH
-
 (==>) :: (a ~> b) -> (b ~> c) -> (a ~> c)
 f ==> g = \x -> f x >>= g
 
-algH :: (Ord s) => PCL3F s (s ~~> s) -> (s ~~> s)
-algH Skip3F            =  return
-algH (Update3F f p)    =  huplift f ==> p
-algH (If3F c p q r)    =  conditional c p q ==> r
-algH (While3F c p q)   =  let  while = conditional c (p ==> while) q
+hysem :: (Ord s) => PCL3 s -> (s ~~> s)
+hysem Skip3            =  return
+hysem (Update3 f p)    =  huplift f ==> (hysem p)
+hysem (If3 c p q r)    =  conditional c (hysem p) (hysem q) ==> (hysem r)
+hysem (While3 c p q)   =  let  while = conditional c ((hysem p) ==> while) (hysem q)
                           in   while
-algH (Observe3F' f p)  =  hobsem f ==> p
+hysem (Observe3' f p)  =  hobsem f ==> (hysem p)
 
 conditional :: Ord s => (s ~> Bool) -> (s ~~> s) -> (s ~~> s) -> (s ~~> s)
 conditional c t e = \d ->
@@ -77,22 +67,6 @@ Update3 f p   <---> k  = Update3 f (p <---> k)
 While3 c p q  <---> k  = While3 c p (q <---> k)
 If3 c p q r   <---> k  = If3 c p q (r <---> k)
 Observe3' f p  <---> k  = Observe3' f (p <---> k)  -- added
-
---------------------------------------------------
-skip3 :: PCL3 s
-skip3 = Skip3
-
-update3 :: (s ~> s) -> PCL3 s
-update3 f  =  Update3 f skip3
-
-while3 :: (s ~> Bool) -> PCL3 s -> PCL3 s
-while3 c p  =  While3 c p skip3
-
-cond3 :: (s ~> Bool) -> PCL3 s -> PCL3 s -> PCL3 s
-cond3 c p q  =  If3 c p q skip3
-
-observe3' :: (Ord o) => (s ~> o) -> PCL3 s
-observe3' o = Observe3' o skip3
 
 example4 :: PCL3 (Bool,Bool)
 example4 = observe3' (\(b1,b2) -> choose (1 / 2) b1 b2)

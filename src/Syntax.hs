@@ -22,3 +22,18 @@ data PCL3F s a
   |  If3F (s ~> Bool) a a a
   |  While3F (s ~> Bool) a a
   |  forall o. (Ord o) => Observe3F' (s ~> o) a
+
+skip3 :: PCL3 s
+skip3 = Skip3
+
+update3 :: (s ~> s) -> PCL3 s
+update3 f  =  Update3 f skip3
+
+while3 :: (s ~> Bool) -> PCL3 s -> PCL3 s
+while3 c p  =  While3 c p skip3
+
+cond3 :: (s ~> Bool) -> PCL3 s -> PCL3 s -> PCL3 s
+cond3 c p q  =  If3 c p q skip3
+
+observe3' :: (Ord o) => (s ~> o) -> PCL3 s
+observe3' o = Observe3' o skip3
