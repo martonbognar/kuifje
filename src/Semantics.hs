@@ -23,11 +23,11 @@ f ==> g = \x -> f x >>= g
 -- | hysem
 hysem :: (Ord s) => Kuifje s -> (s ~~> s)
 hysem Skip          = return
-hysem (Update f p)  = huplift f ==> (hysem p)
-hysem (If c p q r)  = conditional c (hysem p) (hysem q) ==> (hysem r)
-hysem (While c p q) = let wh = conditional c ((hysem p) ==> wh) (hysem q)
+hysem (Update f p)  = huplift f ==> hysem p
+hysem (If c p q r)  = conditional c (hysem p) (hysem q) ==> hysem r
+hysem (While c p q) = let wh = conditional c (hysem p ==> wh) (hysem q)
                       in wh
-hysem (Observe f p) = hobsem f ==> (hysem p)
+hysem (Observe f p) = hobsem f ==> hysem p
 
 -- | conditional
 conditional :: Ord s => (s ~> Bool) -> (s ~~> s) -> (s ~~> s) -> (s ~~> s)
@@ -51,8 +51,8 @@ hobsem :: (Ord s, Ord o) => (s ~> o) -> (s ~~> s)
 hobsem f = multiply . toPair . (=>> obsem f)
   where
     -- | obsem
-    obsem :: Ord o => (a ~> o) -> (a ~> (o,a))
-    obsem f' = \x -> fmap (\w -> (w, x)) (f' x)
+    obsem :: Ord o => (a ~> o) -> a ~> (o,a)
+    obsem f' x = fmap (\w -> (w, x)) (f' x)
     -- | toPair
     toPair :: (Ord s, Ord o) => Dist (o, s) -> (Dist o, o -> Dist s)
     toPair dp = (d, f')
