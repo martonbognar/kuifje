@@ -7,6 +7,7 @@ module Semantics where
 import Control.Monad (join)
 
 import DataTypes
+import PrettyPrint
 import Syntax
 
 (=>>) :: Ord a => Dist a -> (a -> Dist b) -> Dist b
@@ -22,7 +23,6 @@ foldPCL3 alg Skip3           =  alg Skip3F
 foldPCL3 alg (Update3 f p)   =  alg (Update3F f ((foldPCL3 alg p)))
 foldPCL3 alg (If3 c p q r)   =  alg (If3F c ((foldPCL3 alg p)) ((foldPCL3 alg q)) ((foldPCL3 alg r)))
 foldPCL3 alg (While3 c p q)  =  alg (While3F c ((foldPCL3 alg p)) ((foldPCL3 alg q)))
-foldPCL3 alg (Observe3 f p)  =  alg (Observe3F f (foldPCL3 alg p))
 foldPCL3 alg (Observe3' f p) =  alg (Observe3F' f (foldPCL3 alg p))
 
 hysem :: (Ord s) => PCL3 s -> (s ~~> s)
@@ -76,7 +76,7 @@ Skip3         <---> k  = k
 Update3 f p   <---> k  = Update3 f (p <---> k)
 While3 c p q  <---> k  = While3 c p (q <---> k)
 If3 c p q r   <---> k  = If3 c p q (r <---> k)
-Observe3 f p  <---> k  = Observe3 f (p <---> k)  -- added
+Observe3' f p  <---> k  = Observe3' f (p <---> k)  -- added
 
 --------------------------------------------------
 skip3 :: PCL3 s
@@ -91,14 +91,11 @@ while3 c p  =  While3 c p skip3
 cond3 :: (s ~> Bool) -> PCL3 s -> PCL3 s -> PCL3 s
 cond3 c p q  =  If3 c p q skip3
 
-observe3' :: (Ord o, ToBits o) => (s ~> o) -> PCL3 s
+observe3' :: (Ord o) => (s ~> o) -> PCL3 s
 observe3' o = Observe3' o skip3
 
-observe3 :: ToBits a => (s ~> a) -> PCL3 s
-observe3 f = Observe3' (fmap toBits . f) skip3
-
 example4 :: PCL3 (Bool,Bool)
-example4 = observe3 (\(b1,b2) -> choose (1 / 2) b1 b2)
+example4 = observe3' (\(b1,b2) -> choose (1 / 2) b1 b2)
 
 boolPairs :: Dist (Bool,Bool)
 boolPairs = uniform [(b1,b2) | b1 <- bools, b2 <- bools]

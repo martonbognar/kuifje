@@ -39,27 +39,3 @@ unpackD = removeDups . removeZeroes . runD
 
 reduction :: Ord a => Dist a -> Dist a
 reduction = D . unpackD  -- Unpack and then repack.
-
---------------------------------------------------------------------------------
-
-type Bit  =  Bool
-type Bits =  [Bit]
-
-class ToBits a where
-  toBits :: a -> Bits
-
-instance ToBits Int where
-  toBits n = (n < 0) : unfoldr (
-                        \m -> if m == 0
-                                then Nothing
-                                else Just (odd m, quot m 2)
-                       ) n
-
-instance ToBits () where
-  toBits () = []
-
-instance ToBits Bool where
-  toBits b = [b]
-
-instance ToBits Bits where
-  toBits bits = bits
