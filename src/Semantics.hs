@@ -59,7 +59,7 @@ hobsem f = multiply . toPair . (=>> obsem f)
     multiply (d,f) = fmap f d
 
 example4 :: Kuifje (Bool,Bool)
-example4 = observe3' (\(b1,b2) -> choose (1 / 2) b1 b2)
+example4 = observe (\(b1,b2) -> choose (1 / 2) b1 b2)
 
 boolPairs :: Dist (Bool,Bool)
 boolPairs = uniform [(b1,b2) | b1 <- bools, b2 <- bools]

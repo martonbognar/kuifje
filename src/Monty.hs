@@ -15,7 +15,7 @@ instance Boxable Door where
 
 hall :: Door -> Kuifje Door
 hall chosenDoor =
-  observe3' (\carDoor -> uniform ([DoorA,DoorB,DoorC] \\ [carDoor,chosenDoor]))
+  observe (\carDoor -> uniform ([DoorA,DoorB,DoorC] \\ [carDoor,chosenDoor]))
 
 doors = uniform [DoorA,DoorB,DoorC]
 monty = hysem (hall DoorA) doors

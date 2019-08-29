@@ -23,17 +23,17 @@ While c p q  <---> k  = While c p (q <---> k)
 If c p q r   <---> k  = If c p q (r <---> k)
 Observe f p  <---> k  = Observe f (p <---> k)  -- added
 
-skip3 :: Kuifje s
-skip3 = Skip
+skip :: Kuifje s
+skip = Skip
 
-update3 :: (s ~> s) -> Kuifje s
-update3 f  =  Update f skip3
+update :: (s ~> s) -> Kuifje s
+update f  =  Update f skip
 
-while3 :: (s ~> Bool) -> Kuifje s -> Kuifje s
-while3 c p  =  While c p skip3
+while :: (s ~> Bool) -> Kuifje s -> Kuifje s
+while c p  =  While c p skip
 
-cond3 :: (s ~> Bool) -> Kuifje s -> Kuifje s -> Kuifje s
-cond3 c p q  =  If c p q skip3
+cond :: (s ~> Bool) -> Kuifje s -> Kuifje s -> Kuifje s
+cond c p q  =  If c p q skip
 
-observe3' :: (Ord o) => (s ~> o) -> Kuifje s
-observe3' o = Observe o skip3
+observe :: (Ord o) => (s ~> o) -> Kuifje s
+observe o = Observe o skip
