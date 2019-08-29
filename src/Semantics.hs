@@ -18,13 +18,13 @@ type a ~~> b = Dist a -> Dist (Dist b)
 (==>) :: (a ~> b) -> (b ~> c) -> (a ~> c)
 f ==> g = \x -> f x >>= g
 
-hysem :: (Ord s) => PCL3 s -> (s ~~> s)
-hysem Skip3            =  return
-hysem (Update3 f p)    =  huplift f ==> (hysem p)
-hysem (If3 c p q r)    =  conditional c (hysem p) (hysem q) ==> (hysem r)
-hysem (While3 c p q)   =  let  while = conditional c ((hysem p) ==> while) (hysem q)
+hysem :: (Ord s) => Kuifje s -> (s ~~> s)
+hysem Skip            =  return
+hysem (Update f p)    =  huplift f ==> (hysem p)
+hysem (If c p q r)    =  conditional c (hysem p) (hysem q) ==> (hysem r)
+hysem (While c p q)   =  let  while = conditional c ((hysem p) ==> while) (hysem q)
                           in   while
-hysem (Observe3' f p)  =  hobsem f ==> (hysem p)
+hysem (Observe f p)  =  hobsem f ==> (hysem p)
 
 conditional :: Ord s => (s ~> Bool) -> (s ~~> s) -> (s ~~> s) -> (s ~~> s)
 conditional c t e = \d ->
@@ -58,7 +58,7 @@ hobsem f = multiply . toPair . (=>> obsem f)
     multiply :: (Dist o, o -> Dist s) -> Dist (Dist s)
     multiply (d,f) = fmap f d
 
-example4 :: PCL3 (Bool,Bool)
+example4 :: Kuifje (Bool,Bool)
 example4 = observe3' (\(b1,b2) -> choose (1 / 2) b1 b2)
 
 boolPairs :: Dist (Bool,Bool)

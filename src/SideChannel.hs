@@ -21,7 +21,7 @@ makeLenses ''SE
 initSE :: Integer -> Integer -> SE
 initSE base exp = SE { _base = base, _exp = exp, _e = 0, _d = 0, _p = 0 }
 
-exonentiation :: [Integer] -> PCL3 SE
+exonentiation :: [Integer] -> Kuifje SE
 exonentiation ds =
    update3 (\s -> return (s.^e  $= (s^.exp))) <--->
    update3 (\s -> return (s.^p  $= 1))  <--->

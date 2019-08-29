@@ -13,7 +13,7 @@ data Door = DoorA | DoorB | DoorC deriving (Eq, Show, Ord)
 instance Boxable Door where
   toBox = text . show
 
-hall :: Door -> PCL3 Door
+hall :: Door -> Kuifje Door
 hall chosenDoor =
   observe3' (\carDoor -> uniform ([DoorA,DoorB,DoorC] \\ [carDoor,chosenDoor]))
 

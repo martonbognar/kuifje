@@ -9,31 +9,31 @@ import Distribution
 
 type a ~> b = a -> Dist b
 
-data PCL3 s
-  = Skip3
-  | Update3 (s ~> s) (PCL3 s)
-  | If3 (s ~> Bool) (PCL3 s) (PCL3 s) (PCL3 s)
-  | While3 (s ~> Bool) (PCL3 s) (PCL3 s)
-  | forall o. (Ord o) => Observe3' (s ~> o) (PCL3 s)
+data Kuifje s
+  = Skip
+  | Update (s ~> s) (Kuifje s)
+  | If (s ~> Bool) (Kuifje s) (Kuifje s) (Kuifje s)
+  | While (s ~> Bool) (Kuifje s) (Kuifje s)
+  | forall o. (Ord o) => Observe (s ~> o) (Kuifje s)
 
-(<--->) :: PCL3 s -> PCL3 s -> PCL3 s
-Skip3         <---> k  = k
-Update3 f p   <---> k  = Update3 f (p <---> k)
-While3 c p q  <---> k  = While3 c p (q <---> k)
-If3 c p q r   <---> k  = If3 c p q (r <---> k)
-Observe3' f p  <---> k  = Observe3' f (p <---> k)  -- added
+(<--->) :: Kuifje s -> Kuifje s -> Kuifje s
+Skip         <---> k  = k
+Update f p   <---> k  = Update f (p <---> k)
+While c p q  <---> k  = While c p (q <---> k)
+If c p q r   <---> k  = If c p q (r <---> k)
+Observe f p  <---> k  = Observe f (p <---> k)  -- added
 
-skip3 :: PCL3 s
-skip3 = Skip3
+skip3 :: Kuifje s
+skip3 = Skip
 
-update3 :: (s ~> s) -> PCL3 s
-update3 f  =  Update3 f skip3
+update3 :: (s ~> s) -> Kuifje s
+update3 f  =  Update f skip3
 
-while3 :: (s ~> Bool) -> PCL3 s -> PCL3 s
-while3 c p  =  While3 c p skip3
+while3 :: (s ~> Bool) -> Kuifje s -> Kuifje s
+while3 c p  =  While c p skip3
 
-cond3 :: (s ~> Bool) -> PCL3 s -> PCL3 s -> PCL3 s
-cond3 c p q  =  If3 c p q skip3
+cond3 :: (s ~> Bool) -> Kuifje s -> Kuifje s -> Kuifje s
+cond3 c p q  =  If c p q skip3
 
-observe3' :: (Ord o) => (s ~> o) -> PCL3 s
-observe3' o = Observe3' o skip3
+observe3' :: (Ord o) => (s ~> o) -> Kuifje s
+observe3' o = Observe o skip3

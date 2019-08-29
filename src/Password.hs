@@ -32,7 +32,7 @@ projectPw = fmap (fmap (\s -> s^.pw))
 
 initialDist pw gs = uniform [ makeState pw' gs | pw' <- permutations pw]
 
-basicI :: Int -> PCL3 SP
+basicI :: Int -> Kuifje SP
 basicI n =
   update3 (\s -> return (s.^i $= 0)) <--->                          -- |i := 0;|
   update3 (\s -> return (s.^ans $= True)) <--->                     -- |ans := true|
@@ -46,7 +46,7 @@ basicI n =
 
 hyperI pw gs = projectPw (hysem (basicI (length pw)) (initialDist pw gs))
 
-basicL :: Int -> PCL3 SP
+basicL :: Int -> Kuifje SP
 basicL n =
   update3 (\s -> return (s.^i $= 0)) <--->                          -- |i := 0;|
   update3 (\s -> return (s.^ans $= True)) <--->                     -- |ans := true|
@@ -62,7 +62,7 @@ hyperL pw gs = projectPw (hysem (basicL (length pw)) (initialDist pw gs))
 
 hyperM pw gs = projectPw (hysem (basicM (length pw)) (initialDist pw gs))
 
-basicM :: Int -> PCL3 SP
+basicM :: Int -> Kuifje SP
 basicM n =
   update3 (\s -> return (s.^i $= 0)) <--->                          -- |i := 0;|
   update3 (\s -> return (s.^ans $= True)) <--->                     -- |ans := true|
@@ -75,7 +75,7 @@ basicM n =
 
 hyperN pw gs = projectPw (hysem (basicN (length pw)) (initialDist pw gs))
 
-basicN :: Int -> PCL3 SP
+basicN :: Int -> Kuifje SP
 basicN n =
   update3 (\s -> return (s.^i $= 0)) <--->                          -- |i := 0;|
   update3 (\s -> return (s.^ans $= True)) <--->                     -- |ans := true|
@@ -87,7 +87,7 @@ basicN n =
     ) <--->                                                         -- |end;|
   observe3' (\s -> return (s^.ans))                                  -- |observe ans|
 
-basicR :: Int -> PCL3 SP
+basicR :: Int -> Kuifje SP
 basicR n =
   update3 (\s -> return (s.^l $= [0..n-1])) <--->                   -- |l := [0,...,n-1];|
   update3 (\s -> return (s.^ans $= True)) <--->                     -- |ans := true;|
@@ -105,7 +105,7 @@ hyperR pw gs = projectPw (hysem (basicR (length pw)) (initialDist pw gs))
 ge:: Ord a => Dist a -> Prob
 ge = sum . zipWith (*) [1..] . (sortBy (flip compare) . map snd . runD . reduction)
 
-basicS :: Int -> PCL3 SP
+basicS :: Int -> Kuifje SP
 basicS n =
   update3 (\s -> return (s.^l $= [0..n-1])) <--->                   -- |l := [0,...,n-1];|
   update3 (\s -> return (s.^ans $= True)) <--->                     -- |ans := true;|
