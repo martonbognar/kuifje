@@ -31,22 +31,22 @@ instance Monoid (Kuifje s) where
   mempty = Skip
   mappend = (<>)
 
--- Return a 'skip' instruction.
+-- | Return a 'Skip' instruction.
 skip :: Kuifje s
 skip = Skip
 
--- Return an 'update' instruction.
+-- | Return an 'Update' instruction.
 update :: (s ~> s) -> Kuifje s
 update f = Update f skip
 
--- Return a 'while' instruction.
+-- | Return a 'While' instruction.
 while :: (s ~> Bool) -> Kuifje s -> Kuifje s
 while c p = While c p skip
 
--- Return an 'if' instruction.
+-- | Return an 'If' instruction.
 cond :: (s ~> Bool) -> Kuifje s -> Kuifje s -> Kuifje s
 cond c p q = If c p q skip
 
--- Return an 'observe' instruction.
+-- | Return an 'Observe' instruction.
 observe :: (Ord o) => (s ~> o) -> Kuifje s
 observe o = Observe o skip
