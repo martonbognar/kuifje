@@ -6,15 +6,12 @@ module Semantics where
 
 import Control.Monad (join)
 
-import DataTypes
+import Distribution
 import PrettyPrint
 import Syntax
 
 (=>>) :: Ord a => Dist a -> (a -> Dist b) -> Dist b
 m =>> f = reduction m >>= f
-
-weight :: Dist a -> Prob
-weight (D l)  = sum (map snd l)
 
 type a ~~> b = Dist a -> Dist (Dist b)
 
@@ -60,13 +57,6 @@ hobsem f = multiply . toPair . (=>> obsem f)
 
     multiply :: (Dist o, o -> Dist s) -> Dist (Dist s)
     multiply (d,f) = fmap f d
-
-(<--->) :: PCL3 s -> PCL3 s -> PCL3 s
-Skip3         <---> k  = k
-Update3 f p   <---> k  = Update3 f (p <---> k)
-While3 c p q  <---> k  = While3 c p (q <---> k)
-If3 c p q r   <---> k  = If3 c p q (r <---> k)
-Observe3' f p  <---> k  = Observe3' f (p <---> k)  -- added
 
 example4 :: PCL3 (Bool,Bool)
 example4 = observe3' (\(b1,b2) -> choose (1 / 2) b1 b2)

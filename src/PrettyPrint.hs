@@ -3,7 +3,7 @@ module PrettyPrint where
 import Data.List (transpose)
 import Text.PrettyPrint.Boxes
 
-import DataTypes
+import Distribution
 
 class Boxable a where
   toBox :: a -> Box

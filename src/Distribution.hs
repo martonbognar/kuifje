@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module DataTypes where
+module Distribution where
 
 import Control.Monad (ap)
 import Data.List (genericLength, unfoldr)
@@ -39,3 +39,6 @@ unpackD = removeDups . removeZeroes . runD
 
 reduction :: Ord a => Dist a -> Dist a
 reduction = D . unpackD  -- Unpack and then repack.
+
+weight :: Dist a -> Prob
+weight (D l)  = sum (map snd l)

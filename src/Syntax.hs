@@ -5,7 +5,7 @@
 
 module Syntax where
 
-import DataTypes
+import Distribution
 
 type a ~> b = a -> Dist b
 
@@ -16,12 +16,12 @@ data PCL3 s
   | While3 (s ~> Bool) (PCL3 s) (PCL3 s)
   | forall o. (Ord o) => Observe3' (s ~> o) (PCL3 s)
 
-data PCL3F s a
-  =  Skip3F
-  |  Update3F (s ~> s) a
-  |  If3F (s ~> Bool) a a a
-  |  While3F (s ~> Bool) a a
-  |  forall o. (Ord o) => Observe3F' (s ~> o) a
+(<--->) :: PCL3 s -> PCL3 s -> PCL3 s
+Skip3         <---> k  = k
+Update3 f p   <---> k  = Update3 f (p <---> k)
+While3 c p q  <---> k  = While3 c p (q <---> k)
+If3 c p q r   <---> k  = If3 c p q (r <---> k)
+Observe3' f p  <---> k  = Observe3' f (p <---> k)  -- added
 
 skip3 :: PCL3 s
 skip3 = Skip3

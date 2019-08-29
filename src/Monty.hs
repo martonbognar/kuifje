@@ -3,7 +3,7 @@ module Monty where
 import Data.List ((\\))
 import Text.PrettyPrint.Boxes
 
-import DataTypes
+import Distribution
 import PrettyPrint
 import Semantics
 import Syntax

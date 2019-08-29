@@ -5,7 +5,7 @@ module SideChannel where
 import Prelude hiding (exp)
 import Control.Lens hiding (Profunctor, dimap)
 
-import DataTypes
+import Distribution
 import PrettyPrint
 import Semantics
 import Syntax

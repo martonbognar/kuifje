@@ -6,7 +6,7 @@ import Prelude hiding ((!!))
 import Control.Lens hiding (Profunctor, dimap)
 import Data.List ((\\),genericIndex,permutations,sortBy)
 
-import DataTypes
+import Distribution
 import PrettyPrint
 import Semantics
 import Syntax
