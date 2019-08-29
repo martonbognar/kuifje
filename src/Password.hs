@@ -85,7 +85,7 @@ basicN n =
       (s^.ans && (s^.pw !! s^.i) == (s^.gs !! s^.i))))) <--->       -- \qquad |ans && (pw[i] = gs[i]);|
     (update3 (\s -> return (s.^i $= (s^.i+1))))                     -- \quad |i++|
     ) <--->                                                         -- |end;|
-  observe3 (\s -> return (s^.ans))                                  -- |observe ans|
+  observe3' (\s -> return (s^.ans))                                  -- |observe ans|
 
 basicR :: Int -> PCL3 SP
 basicR n =
@@ -98,7 +98,7 @@ basicR n =
       (s^.ans && (s^.pw !! s^.i) == (s^.gs !! s^.i))))) <--->       -- \qquad |ans && (pw[i] = gs[i]);|
     (update3 (\s -> return (s.^l $= (s^.l \\ [s^.i]))))             -- \qquad |l := l - {i}|
     ) <--->                                                         -- |end;|
-  observe3 (\s -> return (s^.ans))                                  -- |observe ans|
+  observe3' (\s -> return (s^.ans))                                  -- |observe ans|
 
 hyperR pw gs = projectPw (hysem (basicR (length pw)) (initialDist pw gs))
 
@@ -117,7 +117,7 @@ basicS n =
           skip3 <--->                                               -- \qquad |else skip|
     (update3 (\s -> return (s.^l $= (s^.l \\ [s^.i]))))             -- \qquad |l := l - {i}|
     ) <--->                                                         -- |end;|
-  observe3 (\s -> return (s^.ans))                                  -- |observe ans|
+  observe3' (\s -> return (s^.ans))                                  -- |observe ans|
 
 hyperS pw gs = projectPw (hysem (basicS (length pw)) (initialDist pw gs))
 
