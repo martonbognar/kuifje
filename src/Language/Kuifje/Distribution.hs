@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module Distribution where
+module Language.Kuifje.Distribution where
 
 import Control.Monad (ap)
 import Data.List (genericLength)

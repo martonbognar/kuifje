@@ -3,11 +3,11 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Syntax where
+module Language.Kuifje.Syntax where
 
 import Data.Semigroup
 
-import Distribution
+import Language.Kuifje.Distribution
 
 -- | Kleisli arrow.
 type a ~> b = a -> Dist b

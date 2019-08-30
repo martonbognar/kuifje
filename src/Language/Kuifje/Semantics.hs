@@ -2,12 +2,12 @@
 
 {-# LANGUAGE TypeOperators #-}
 
-module Semantics where
+module Language.Kuifje.Semantics where
 
 import Control.Monad (join)
 
-import Distribution
-import Syntax
+import Language.Kuifje.Distribution
+import Language.Kuifje.Syntax
 
 -- | Hyper-distribution type synonym.
 type a ~~> b = Dist a -> Dist (Dist b)

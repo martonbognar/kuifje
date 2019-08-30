@@ -3,10 +3,10 @@ module Monty where
 import Data.List ((\\))
 import Text.PrettyPrint.Boxes
 
-import Distribution
-import PrettyPrint
-import Semantics
-import Syntax
+import Language.Kuifje.Distribution
+import Language.Kuifje.PrettyPrint
+import Language.Kuifje.Semantics
+import Language.Kuifje.Syntax
 
 data Door = DoorA | DoorB | DoorC deriving (Eq, Show, Ord)
 

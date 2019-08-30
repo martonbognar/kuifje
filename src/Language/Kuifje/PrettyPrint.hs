@@ -1,9 +1,9 @@
-module PrettyPrint where
+module Language.Kuifje.PrettyPrint where
 
 import Data.List (transpose)
 import Text.PrettyPrint.Boxes
 
-import Distribution
+import Language.Kuifje.Distribution
 
 class Boxable a where
   toBox :: a -> Box

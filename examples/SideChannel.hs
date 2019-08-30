@@ -6,10 +6,10 @@ import Prelude hiding (exp)
 import Control.Lens hiding (Profunctor)
 import Data.Semigroup
 
-import Distribution
-import PrettyPrint ()
-import Semantics
-import Syntax
+import Language.Kuifje.Distribution
+import Language.Kuifje.PrettyPrint ()
+import Language.Kuifje.Semantics
+import Language.Kuifje.Syntax
 
 ($=) :: (a -> b) -> a -> b
 ($=) = ($)
