@@ -2,6 +2,8 @@
 
 A prototype for a Quantitative Information Flow aware programming language.
 
+Based on the paper: "Quantitative Information Flow with Monads in Haskell" by Jeremy Gibbons, Annabelle McIver, Carroll Morgan, and Tom Schrijvers.
+
 ## Generating documentation
 
 The important functions in the code are documented using Haddock notation.
