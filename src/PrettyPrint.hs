@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wall #-}
-
 module PrettyPrint where
 
 import Data.List (transpose)
@@ -31,16 +29,11 @@ instance (Show a, Show b, Show c) => Boxable (a,b,c) where
 instance (Show a, Show b, Show c, Show d) => Boxable (a,b,c,d) where
   toBox p  =  text (show p)
 
+distToBox :: (Ord a, Boxable a) => Dist a -> Box
 distToBox d = tabulate (map (\(e, p) -> [text (show p), toBox e]) (unpackD d))
 
 instance (Boxable a, Ord a) => Boxable (Dist a) where
   toBox = distToBox
-
-instance Ord a => Eq (Dist a) where
-  d1 == d2  =  unpackD d1 == unpackD d2
-
-instance Ord a => Ord (Dist a) where
-  d1 <= d2  =  unpackD d1 <= unpackD d2
 
 instance (Ord a, Boxable a) => Show (Dist a) where
   show = render . distToBox

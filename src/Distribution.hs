@@ -26,6 +26,12 @@ instance Monad Dist where
   return x = D [(x, 1)]
   d >>= f  = D [(y, p * q) | (x, p) <- runD d, (y, q) <- runD (f x)]
 
+instance Ord a => Eq (Dist a) where
+  d1 == d2  =  unpackD d1 == unpackD d2
+
+instance Ord a => Ord (Dist a) where
+  d1 <= d2  =  unpackD d1 <= unpackD d2
+
 -- | Construct a discrete distribution from a nonempty list of elements,
 -- assigning the same probability to each element.
 uniform :: [a] -> Dist a
