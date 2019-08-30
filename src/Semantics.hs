@@ -20,7 +20,8 @@ m =>> f = reduction m >>= f
 (==>) :: (a ~> b) -> (b ~> c) -> (a ~> c)
 f ==> g = \x -> f x >>= g
 
--- | hysem
+-- | For a given program, returns a function that calculates the
+-- hyper-distribution for a given input distribution.
 hysem :: (Ord s) => Kuifje s -> (s ~~> s)
 hysem Skip          = return
 hysem (Update f p)  = huplift f ==> hysem p
@@ -29,7 +30,7 @@ hysem (While c p q) = let wh = conditional c (hysem p ==> wh) (hysem q)
                       in wh
 hysem (Observe f p) = hobsem f ==> hysem p
 
--- | conditional
+-- | Conditional semantics ('If' and 'While').
 conditional :: Ord s => (s ~> Bool) -> (s ~~> s) -> (s ~~> s) -> (s ~~> s)
 conditional c t e d
   = let d' = d =>> \s -> c s =>> \b -> return (b, s)
@@ -43,24 +44,25 @@ conditional c t e d
         else if  null (runD d1)  then  h2
                                  else  join (choose w1 h1 h2)
 
+-- | Lifts a distribution to a hyper-distribution.
 huplift :: Ord s => (s ~> s) -> (s ~~> s)
 huplift f = return . (=>> f)
 
--- | hobsem
+-- | 'Observe' semantics.
 hobsem :: (Ord s, Ord o) => (s ~> o) -> (s ~~> s)
 hobsem f = multiply . toPair . (=>> obsem f)
   where
-    -- | obsem
+
     obsem :: Ord o => (a ~> o) -> a ~> (o,a)
     obsem f' x = fmap (\w -> (w, x)) (f' x)
-    -- | toPair
+
     toPair :: (Ord s, Ord o) => Dist (o, s) -> (Dist o, o -> Dist s)
     toPair dp = (d, f')
       where
         d     = fmap fst dp
         f' ws = let dpws = D [(s, p) | ((ws', s), p) <- runD dp, ws' == ws]
                 in D [(s, p / weight dpws) | (s, p) <- runD dpws]
-    -- | multiply
+
     multiply :: (Dist o, o -> Dist s) -> Dist (Dist s)
     multiply (d, f') = fmap f' d
 
@@ -68,8 +70,9 @@ hobsem f = multiply . toPair . (=>> obsem f)
 bayesVuln :: Ord a => Dist a -> Prob
 bayesVuln = maximum . map snd . runD . reduction
 
--- | condEntropy
-condEntropy :: (Dist a -> Rational) -> Dist(Dist a) -> Rational
+-- | Based on an entropy function for distributions, calculate the
+-- average entropy for a hyper-distribution.
+condEntropy :: (Dist a -> Rational) -> Dist (Dist a) -> Rational
 condEntropy e h = average (fmap e h) where
   -- | Average a distribution of Rationals.
   average :: Dist Rational -> Rational
