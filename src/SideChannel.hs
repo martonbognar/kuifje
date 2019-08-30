@@ -31,16 +31,17 @@ initSE base exp = SE { _base = base, _exp = exp, _e = 0, _d = 0, _p = 0 }
 
 exponentiation :: [Integer] -> Kuifje SE
 exponentiation ds =
-  update (\s -> return (s.^e $= (s^.exp)))
-  <> update (\s -> return (s.^p $= 1))
-  <> while (\s -> return (s^.e /= 0)) (
-    update (\s -> uniform [s.^d $= d' | d' <- ds])
-    <> cond (\s -> return (s^.e `mod` s^.d /= 0)) (
-      update (\s -> return (s.^p $= ((s^.p) * ((s^.base) ^ (s^.e `mod` s^.d)))))
-      <> update (\s -> return (s.^e  $= (s^.e - (s^.e `mod` s^.d))))
+  update (\s -> return (s.^e $= (s^.exp))) <>
+  update (\s -> return (s.^p $= 1)) <>
+  while (\s -> return (s^.e /= 0)) (
+    update (\s -> uniform [s.^d $= d' | d' <- ds]) <>
+    cond (\s -> return (s^.e `mod` s^.d /= 0)) (
+      update (\s -> return (s.^p $= ((s^.p) * ((s^.base) ^ (s^.e `mod` s^.d))))) <>
+      update (\s -> return (s.^e  $= (s^.e - (s^.e `mod` s^.d))))
     ) skip -- empty else branch
-    <> update (\s -> return (s.^base $= ((s^.base)^(s^.d))))
-    <> update (\s -> return (s.^e $= (s^.e `div` s^.d)))
+    <>
+    update (\s -> return (s.^base $= ((s^.base)^(s^.d)))) <>
+    update (\s -> return (s.^e $= (s^.e `div` s^.d)))
   )
 
 project :: Dist (Dist SE) -> Dist (Dist Integer)
