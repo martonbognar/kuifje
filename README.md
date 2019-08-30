@@ -61,6 +61,15 @@ run = do
   print hyper
   putStrLn "> condEntropy bayesVuln hyper"
   print $ condEntropy bayesVuln hyper
+
+-- > hyper
+-- 1 % 4   1 % 1   15
+-- 1 % 4   1 % 1   21
+-- 1 % 4   1 % 1   28
+-- 1 % 4   1 % 1   36
+
+-- > condEntropy bayesVuln hyper
+-- 1 % 1
 ```
 
 ## Examples
