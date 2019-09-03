@@ -53,6 +53,10 @@ unpackD = removeDups . removeZeroes . runD
 reduction :: Ord a => Dist a -> Dist a
 reduction = D . unpackD
 
+weightH :: [(a, Prob)] -> Prob
+weightH []     = 0
+weightH ((_, x):xs) = x + weightH xs
+
 -- | Sum the probabilities in the distribution.
 weight :: Dist a -> Prob
-weight (D l) = sum (map snd l)
+weight (D l) = weightH l
