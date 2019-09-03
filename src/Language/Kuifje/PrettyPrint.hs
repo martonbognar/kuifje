@@ -2,6 +2,7 @@ module Language.Kuifje.PrettyPrint where
 
 import Data.List (transpose)
 import Text.PrettyPrint.Boxes
+import qualified Data.Map.Strict as HM (mapWithKey, elems)
 
 import Language.Kuifje.Distribution
 
@@ -30,7 +31,8 @@ instance (Show a, Show b, Show c, Show d) => Boxable (a,b,c,d) where
   toBox p  =  text (show p)
 
 distToBox :: (Ord a, Boxable a) => Dist a -> Box
-distToBox d = tabulate (map (\(e, p) -> [text (show p), toBox e]) (unpackD d))
+distToBox d = tabulate $ HM.elems (HM.mapWithKey lambdaPrint (unpackD d))
+                where lambdaPrint e p = [text (show p), toBox e]
 
 instance (Boxable a, Ord a) => Boxable (Dist a) where
   toBox = distToBox

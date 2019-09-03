@@ -2,10 +2,11 @@
 
 module Password where
 
-import Prelude hiding ((!!))
+import Prelude hiding ((!!), return, fmap)
 import Control.Lens hiding (Profunctor, dimap)
 import Data.List ((\\),genericIndex,permutations,sortBy)
 import Data.Semigroup
+import Data.Map.Strict (elems)
 
 import Language.Kuifje.Distribution
 import Language.Kuifje.PrettyPrint ()
@@ -134,7 +135,7 @@ hyperS :: [Char] -> [Char] -> Dist (Dist [Char])
 hyperS pw gs = projectPw (hysem (basicS (length pw)) (initialDist pw gs))
 
 ge :: Ord a => Dist a -> Prob
-ge = sum . zipWith (*) [1..] . (sortBy (flip compare) . map snd . runD . reduction)
+ge = sum . zipWith (*) [1..] . (sortBy (flip compare) . elems . runD . reduction)
 
 main :: IO ()
 main = do

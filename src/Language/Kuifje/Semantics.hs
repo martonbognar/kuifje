@@ -4,7 +4,8 @@
 
 module Language.Kuifje.Semantics where
 
-import Control.Monad (join)
+import Prelude hiding (return, fmap, map)
+import Data.Map.Strict (fromListWith, toList, elems)
 
 import Language.Kuifje.Distribution
 import Language.Kuifje.Syntax
@@ -13,12 +14,12 @@ import Language.Kuifje.Syntax
 type a ~~> b = Dist a -> Dist (Dist b)
 
 -- | Bind with reduction applied to the input distribution.
-(=>>) :: Ord a => Dist a -> (a -> Dist b) -> Dist b
-m =>> f = reduction m >>= f
+(=>>) :: (Ord b) => Dist a -> (a -> Dist b) -> Dist b
+m =>> f = reduction m `bind` f
 
 -- | Kleisli composition.
-(==>) :: (a ~> b) -> (b ~> c) -> (a ~> c)
-f ==> g = \x -> f x >>= g
+(==>) :: (Ord c) => (a ~> b) -> (b ~> c) -> (a ~> c)
+f ==> g = \x -> f x `bind` g
 
 -- | For a given program, returns a function that calculates the
 -- hyper-distribution for a given input distribution.
@@ -31,13 +32,13 @@ hysem (While c p q) = let wh = conditional c (hysem p ==> wh) (hysem q)
 hysem (Observe f p) = hobsem f ==> hysem p
 
 -- | Conditional semantics ('If' and 'While').
-conditional :: Ord s => (s ~> Bool) -> (s ~~> s) -> (s ~~> s) -> (s ~~> s)
+conditional :: (Ord s) => (s ~> Bool) -> (s ~~> s) -> (s ~~> s) -> (s ~~> s)
 conditional c t e d
   = let d' = d =>> \s -> c s =>> \b -> return (b, s)
-        w1 = sum [p | ((b, _), p) <- runD d', b]
+        w1 = sum [p | ((b, _), p) <- toList $ runD d', b]
         w2 = 1 - w1
-        d1 = D [(s, p / w1) | ((b, s), p) <- runD d', b]
-        d2 = D [(s, p / w2) | ((b, s), p) <- runD d', not b]
+        d1 = D $ fromListWith (+) [(s, p / w1) | ((b, s), p) <- toList $ runD d', b]
+        d2 = D $ fromListWith (+) [(s, p / w2) | ((b, s), p) <- toList $ runD d', not b]
         h1 = t d1
         h2 = e d2
     in  if       null (runD d2)  then  h1
@@ -45,7 +46,7 @@ conditional c t e d
                                  else  join (choose w1 h1 h2)
 
 -- | Lifts a distribution to a hyper-distribution.
-huplift :: Ord s => (s ~> s) -> (s ~~> s)
+huplift :: (Ord s) => (s ~> s) -> (s ~~> s)
 huplift f = return . (=>> f)
 
 -- | 'Observe' semantics.
@@ -53,27 +54,27 @@ hobsem :: (Ord s, Ord o) => (s ~> o) -> (s ~~> s)
 hobsem f = multiply . toPair . (=>> obsem f)
   where
 
-    obsem :: Ord o => (a ~> o) -> a ~> (o,a)
+    obsem :: (Ord o, Ord a) => (a ~> o) -> a ~> (o,a)
     obsem f' x = fmap (\w -> (w, x)) (f' x)
 
     toPair :: (Ord s, Ord o) => Dist (o, s) -> (Dist o, o -> Dist s)
     toPair dp = (d, f')
       where
         d     = fmap fst dp
-        f' ws = let dpws = D [(s, p) | ((ws', s), p) <- runD dp, ws' == ws]
-                in D [(s, p / weight dpws) | (s, p) <- runD dpws]
+        f' ws = let dpws = D $ fromListWith (+) [(s, p) | ((ws', s), p) <- toList $ runD dp, ws' == ws]
+                in D $ fromListWith (+) [(s, p / weight dpws) | (s, p) <- toList $ runD dpws]
 
-    multiply :: (Dist o, o -> Dist s) -> Dist (Dist s)
+    multiply :: (Ord s) => (Dist o, o -> Dist s) -> Dist (Dist s)
     multiply (d, f') = fmap f' d
 
 -- | Calculate Bayes Vulnerability for a distribution.
 bayesVuln :: Ord a => Dist a -> Prob
-bayesVuln = maximum . map snd . runD . reduction
+bayesVuln = maximum . elems . runD . reduction
 
 -- | Based on an entropy function for distributions, calculate the
 -- average entropy for a hyper-distribution.
 condEntropy :: (Dist a -> Rational) -> Dist (Dist a) -> Rational
-condEntropy e h = average (fmap e h) where
+condEntropy e m = average (fmap e m) where
   -- | Average a distribution of Rationals.
   average :: Dist Rational -> Rational
-  average d = sum [r * p | (r, p) <- runD d]
+  average d = sum [r * p | (r, p) <- toList $ runD d]

@@ -5,26 +5,30 @@
 
 module Language.Kuifje.Distribution where
 
-import Control.Monad (ap)
+import Prelude hiding (filter, foldr, return)
 import Data.List (genericLength)
-import Data.Map (toList, fromListWith)
+import Data.Map.Strict
 
 -- | Type synonym for probabilities.
 type Prob = Rational
 
 -- | Distribution data type.
-newtype Dist a = D { runD :: [(a, Prob)] }
+newtype Dist a = D { runD :: Map a Prob }
 
-instance Applicative Dist where
-  pure  = return
-  (<*>) = ap
+-- instance Hashable a => Hashable (Dist a) where
+--   hashWithSalt salt (D s) = hashWithSalt salt s
 
-instance Functor Dist where
-  fmap f dx = dx >>= return . f
+fmap :: (Ord b) => (a -> b) -> Dist a -> Dist b
+fmap f dx = dx `bind` (return . f)
 
-instance Monad Dist where
-  return x = D [(x, 1)]
-  d >>= f  = D [(y, p * q) | (x, p) <- runD d, (y, q) <- runD (f x)]
+return :: (Ord a) => a -> Dist a
+return x = D $ singleton x 1
+
+bind :: (Ord b) => Dist a -> (a -> Dist b) -> Dist b
+d `bind` f = D $ fromListWith (+) [(y, p * q) | (x, p) <- toList $ runD d, (y, q) <- toList $ runD (f x)]
+
+join :: (Ord a) => Dist (Dist a) -> Dist a
+join x = x `bind` id
 
 instance Ord a => Eq (Dist a) where
   d1 == d2  =  unpackD d1 == unpackD d2
@@ -34,29 +38,24 @@ instance Ord a => Ord (Dist a) where
 
 -- | Construct a discrete distribution from a nonempty list of elements,
 -- assigning the same probability to each element.
-uniform :: [a] -> Dist a
-uniform l = D [(x, 1 / genericLength l) | x <- l]
+uniform :: (Ord a) => [a] -> Dist a
+uniform l = D $ fromListWith (+) [(x, 1 / genericLength l) | x <- l]
 
 -- | Construct a distribution in which the first element has probability p
 -- and the second 1−p.
-choose :: Prob -> a -> a -> Dist a
-choose p x y = D [(x, p), (y, 1 - p)]
+choose :: (Ord a) => Prob -> a -> a -> Dist a
+choose p x y = D $ fromListWith (+) [(x, p), (y, 1 - p)]
 
 -- | Recover the list representation of a distribution, reduced.
-unpackD :: Ord a => Dist a -> [(a, Prob)]
-unpackD = removeDups . removeZeroes . runD
+unpackD :: Dist a -> Map a Prob
+unpackD = removeZeroes . runD -- TODO: integrate to reduction
   where
-    removeZeroes = filter (\(_, p) -> p /= 0)
-    removeDups   = toList . fromListWith (+)
+    removeZeroes = filter (\(p) -> p /= 0)
 
 -- | Remove duplicates and zeroes from a distribution.
-reduction :: Ord a => Dist a -> Dist a
+reduction :: Dist a -> Dist a
 reduction = D . unpackD
-
-weightH :: [(a, Prob)] -> Prob
-weightH []     = 0
-weightH ((_, x):xs) = x + weightH xs
 
 -- | Sum the probabilities in the distribution.
 weight :: Dist a -> Prob
-weight (D l) = weightH l
+weight (D l) = foldr (+) 0 l

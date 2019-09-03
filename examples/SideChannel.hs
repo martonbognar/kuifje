@@ -2,9 +2,10 @@
 
 module SideChannel where
 
-import Prelude hiding (exp)
+import Prelude hiding (exp, return, fmap)
 import Control.Lens hiding (Profunctor)
 import Data.Semigroup
+import Data.Map.Strict (elems)
 
 import Language.Kuifje.Distribution
 import Language.Kuifje.PrettyPrint ()
@@ -56,7 +57,7 @@ hyper235 = project (hysem (exponentiation [2, 3, 5])
                           (uniform [initSE 6 exp | exp <- [0..15]]))
 
 jail :: Ord a => Dist a -> Rational
-jail d = let m = maximum (map snd (runD (reduction d)))
+jail d = let m = maximum (elems (runD (reduction d)))
          in (1 * m - 5 * (1 - m)) `max` 0
 
 main :: IO ()
