@@ -59,8 +59,8 @@ jail :: Ord a => Dist a -> Rational
 jail d = let m = maximum (map snd (runD (reduction d)))
          in (1 * m - 5 * (1 - m)) `max` 0
 
-run :: IO ()
-run = do
+main :: IO ()
+main = do
   putStrLn "> hyper2"
   print hyper2
   putStrLn "> condEntropy bayesVuln hyper235"

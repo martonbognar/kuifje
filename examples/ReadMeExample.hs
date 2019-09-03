@@ -42,8 +42,8 @@ project = fmap (fmap (\s -> s^.y))
 hyper :: Dist (Dist Integer)
 hyper = project $ hysem program (uniform [initSE x | x <- [5..8]])
 
-run :: IO ()
-run = do
+main :: IO ()
+main = do
   putStrLn "> hyper"
   print hyper
   putStrLn "> condEntropy bayesVuln hyper"

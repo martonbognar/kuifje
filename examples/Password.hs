@@ -136,8 +136,8 @@ hyperS pw gs = projectPw (hysem (basicS (length pw)) (initialDist pw gs))
 ge :: Ord a => Dist a -> Prob
 ge = sum . zipWith (*) [1..] . (sortBy (flip compare) . map snd . runD . reduction)
 
-run :: IO ()
-run = do
+main :: IO ()
+main = do
   putStrLn "hyperI \"abc\" \"abc\""
   print $ hyperI "abc" "abc"
   putStrLn "hyperI \"abc\" \"axc\""

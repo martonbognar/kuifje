@@ -23,8 +23,8 @@ doors = uniform [DoorA, DoorB, DoorC]
 monty :: Dist (Dist Door)
 monty = hysem (hall DoorA) doors
 
-run :: IO ()
-run = do
+main :: IO ()
+main = do
   putStrLn "> monty"
   print monty
   putStrLn "> condEntropy bayesVuln monty"
