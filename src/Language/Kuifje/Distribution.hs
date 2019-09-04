@@ -48,9 +48,9 @@ choose p x y = D $ fromListWith (+) [(x, p), (y, 1 - p)]
 
 -- | Recover the list representation of a distribution, reduced.
 unpackD :: Dist a -> Map a Prob
-unpackD = removeZeroes . runD -- TODO: integrate to reduction
+unpackD = removeZeroes . runD
   where
-    removeZeroes = filter (\(p) -> p /= 0)
+    removeZeroes = filter (/= 0)
 
 -- | Remove duplicates and zeroes from a distribution.
 reduction :: Dist a -> Dist a
