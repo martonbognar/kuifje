@@ -4,7 +4,7 @@
 
 module Language.Kuifje.Semantics where
 
-import Prelude hiding (return, fmap, map)
+import Prelude hiding (return, fmap, map, (>>=))
 import Data.Map.Strict (fromListWith, toList, elems)
 
 import Language.Kuifje.Distribution
@@ -15,11 +15,11 @@ type a ~~> b = Dist a -> Dist (Dist b)
 
 -- | Bind with reduction applied to the input distribution.
 (=>>) :: (Ord b) => Dist a -> (a -> Dist b) -> Dist b
-m =>> f = reduction m `bind` f
+m =>> f = reduction m >>= f
 
 -- | Kleisli composition.
 (==>) :: (Ord c) => (a ~> b) -> (b ~> c) -> (a ~> c)
-f ==> g = \x -> f x `bind` g
+f ==> g = \x -> f x >>= g
 
 -- | For a given program, returns a function that calculates the
 -- hyper-distribution for a given input distribution.

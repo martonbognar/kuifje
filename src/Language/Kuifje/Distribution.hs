@@ -5,7 +5,7 @@
 
 module Language.Kuifje.Distribution where
 
-import Prelude hiding (filter, foldr, return)
+import Prelude hiding (filter, foldr, return, (>>=))
 import Data.List (genericLength)
 import Data.Map.Strict
 
@@ -19,16 +19,16 @@ newtype Dist a = D { runD :: Map a Prob }
 --   hashWithSalt salt (D s) = hashWithSalt salt s
 
 fmap :: (Ord b) => (a -> b) -> Dist a -> Dist b
-fmap f dx = dx `bind` (return . f)
+fmap f dx = dx >>= (return . f)
 
 return :: (Ord a) => a -> Dist a
 return x = D $ singleton x 1
 
-bind :: (Ord b) => Dist a -> (a -> Dist b) -> Dist b
-d `bind` f = D $ fromListWith (+) [(y, p * q) | (x, p) <- toList $ runD d, (y, q) <- toList $ runD (f x)]
+(>>=) :: (Ord b) => Dist a -> (a -> Dist b) -> Dist b
+d >>= f = D $ fromListWith (+) [(y, p * q) | (x, p) <- toList $ runD d, (y, q) <- toList $ runD (f x)]
 
 join :: (Ord a) => Dist (Dist a) -> Dist a
-join x = x `bind` id
+join x = x >>= id
 
 instance Ord a => Eq (Dist a) where
   d1 == d2  =  unpackD d1 == unpackD d2
