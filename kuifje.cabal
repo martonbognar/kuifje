@@ -12,6 +12,7 @@ license:             BSD3
 license-file:        LICENSE
 author:              Marton Bognar
 maintainer:          marton.bognar@student.kuleuven.be
+homepage:            https://github.com/martonbognar/kuifje
 -- copyright:
 category:            Language
 build-type:          Simple
