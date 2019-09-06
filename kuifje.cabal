@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                kuifje
-version:             0.1.0.0
+version:             0.1.1.0
 synopsis:            A Quantitative Information Flow aware programming language.
 description:         A prototype for a Quantitative Information Flow aware programming language.
 
