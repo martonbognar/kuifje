@@ -15,6 +15,9 @@ type Prob = Rational
 -- | Distribution data type.
 newtype Dist a = D { runD :: Map a Prob }
 
+-- | Type alias for hyper-distributions.
+type Hyper a = Dist (Dist a)
+
 -- | Top-level fmap function for distributions.
 fmap :: (Ord b) => (a -> b) -> Dist a -> Dist b
 fmap f dx = dx >>= (return . f)
@@ -24,12 +27,16 @@ fmap f dx = dx >>= (return . f)
 return :: (Ord a) => a -> Dist a
 return x = D $ singleton x 1
 
+-- | Alias for return function.
+point :: Ord a => a -> Dist a
+point = return
+
 -- | Top-level bind function for distributions.
 (>>=) :: (Ord b) => Dist a -> (a -> Dist b) -> Dist b
 d >>= f = D $ fromListWith (+) [(y, p * q) | (x, p) <- toList $ runD d, (y, q) <- toList $ runD (f x)]
 
 -- | Top-level join function for distributions.
-join :: (Ord a) => Dist (Dist a) -> Dist a
+join :: (Ord a) => Hyper a -> Dist a
 join x = x >>= id
 
 instance Ord a => Eq (Dist a) where

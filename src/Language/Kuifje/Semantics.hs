@@ -5,13 +5,13 @@
 module Language.Kuifje.Semantics where
 
 import Prelude hiding (return, fmap, (>>=))
-import Data.Map.Strict (fromListWith, toList, elems)
+import Data.Map.Strict (fromListWith, toList, elems, mapWithKey)
 
 import Language.Kuifje.Distribution
 import Language.Kuifje.Syntax
 
 -- | Hyper-distribution type synonym.
-type a ~~> b = Dist a -> Dist (Dist b)
+type a ~~> b = Dist a -> Hyper b
 
 -- | Bind with reduction applied to the input distribution.
 (=>>) :: (Ord b) => Dist a -> (a -> Dist b) -> Dist b
@@ -64,7 +64,7 @@ hobsem f = multiply . toPair . (=>> obsem f)
         f' ws = let dpws = D $ fromListWith (+) [(s, p) | ((ws', s), p) <- toList $ runD dp, ws' == ws]
                 in D $ fromListWith (+) [(s, p / weight dpws) | (s, p) <- toList $ runD dpws]
 
-    multiply :: (Ord s) => (Dist o, o -> Dist s) -> Dist (Dist s)
+    multiply :: (Ord s) => (Dist o, o -> Dist s) -> Hyper s
     multiply (d, f') = fmap f' d
 
 -- | Calculate Bayes Vulnerability for a distribution.
@@ -73,8 +73,9 @@ bayesVuln = maximum . elems . runD . reduction
 
 -- | Based on an entropy function for distributions, calculate the
 -- average entropy for a hyper-distribution.
-condEntropy :: (Dist a -> Rational) -> Dist (Dist a) -> Rational
-condEntropy e m = average (fmap e m) where
-  -- | Average a distribution of Rationals.
-  average :: Dist Rational -> Rational
-  average d = sum [r * p | (r, p) <- toList $ runD d]
+condEntropy :: (Dist a -> Rational) -> Hyper a -> Rational
+condEntropy e m = average (fmap e m)
+
+-- | Average a distribution of Rationals.
+average :: Dist Rational -> Rational
+average = sum . mapWithKey (*) . runD
